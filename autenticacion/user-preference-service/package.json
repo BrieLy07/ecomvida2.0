@@ -1,0 +1,18 @@
+{
+  "name": "user-preferences-service",
+  "version": "1.0.0",
+  "description": "Microservicio de preferencias de usuario - Ecomvida",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1424.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
