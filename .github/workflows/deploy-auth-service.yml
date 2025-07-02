@@ -1,4 +1,4 @@
-name: Deploy - Auth Frontend
+name: Deploy - Auth Service
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout frontend
+    - name: Checkout backend
       uses: actions/checkout@v2
 
     - name: Configurar SSH
@@ -22,28 +22,26 @@ jobs:
     - name: Preparar carpeta en EC2
       run: |
         ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.AUTH_EC2_HOST }} << 'EOF'
-          # Instalar Docker para Amazon Linux 2023
           sudo dnf update -y
           sudo dnf install docker -y
           sudo systemctl enable docker
-          sudo systemctl start docker
           sudo usermod -aG docker ec2-user
 
-          # Crear carpeta limpia para frontend
-          mkdir -p ~/ecomvida-frontend
-          cd ~/ecomvida-frontend
+          mkdir -p ~/auth-service
+          cd ~/auth-service
           rm -rf *
         EOF
 
-    - name: Subir frontend
+    - name: Subir código backend y .env
       run: |
-        scp -o StrictHostKeyChecking=no -r ./ecomvida-frontend/* ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/ecomvida-frontend/
+        scp -o StrictHostKeyChecking=no -r ./autenticacion/auth-service/* ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/
+        scp -o StrictHostKeyChecking=no ./autenticacion/auth-service/.env ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/.env
 
-    - name: Construir y correr contenedor frontend
+    - name: Construir y correr contenedor backend
       run: |
         ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.AUTH_EC2_HOST }} << 'EOF'
-          cd ~/ecomvida-frontend
-          docker stop auth-frontend || true && docker rm auth-frontend || true
-          docker build -t auth-frontend .
-          docker run -d -p 80:80 --name auth-frontend auth-frontend
+          cd ~/auth-service
+          docker stop auth-service || true && docker rm auth-service || true
+          docker build -t auth-service .
+          docker run -d -p 3001:3001 --name auth-service --env-file .env auth-service
         EOF
