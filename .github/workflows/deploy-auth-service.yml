@@ -25,6 +25,7 @@ jobs:
           sudo dnf update -y
           sudo dnf install docker -y
           sudo systemctl enable docker
+          sudo systemctl start docker
           sudo usermod -aG docker ec2-user
 
           mkdir -p ~/auth-service
@@ -34,8 +35,8 @@ jobs:
 
     - name: Subir código backend y .env
       run: |
-        scp -o StrictHostKeyChecking=no -r ./autenticacion/auth-service/* ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/
-        scp -o StrictHostKeyChecking=no ./autenticacion/auth-service/.env ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/.env
+        scp -o StrictHostKeyChecking=no -r ./auth-service/* ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/
+        scp -o StrictHostKeyChecking=no ./auth-service/.env ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/.env
 
     - name: Construir y correr contenedor backend
       run: |
