@@ -33,10 +33,15 @@ jobs:
           rm -rf *
         EOF
 
-    - name: Subir código backend y .env
+    - name: Subir código backend
       run: |
         scp -o StrictHostKeyChecking=no -r ./autenticacion/auth-service/* ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/
-        scp -o StrictHostKeyChecking=no ./autenticacion/auth-service/.env ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/auth-service/.env
+
+    - name: Crear archivo .env desde secret
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.AUTH_EC2_HOST }} << EOF
+          echo "${{ secrets.AUTH_ENV }}" > ~/auth-service/.env
+        EOF
 
     - name: Construir y correr contenedor backend
       run: |
