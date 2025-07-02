@@ -1,0 +1,41 @@
+name: Deploy - Auth Frontend
+
+on:
+  push:
+    branches:
+      - main
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout frontend
+      uses: actions/checkout@v2
+
+    - name: Configurar SSH
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.AUTH_EC2_SSH_KEY }}
+
+    - name: Preparar carpeta en EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.AUTH_EC2_HOST }} << 'EOF'
+          mkdir -p ~/ecomvida-frontend
+          cd ~/ecomvida-frontend
+          rm -rf *
+        EOF
+
+    - name: Subir frontend
+      run: |
+        scp -o StrictHostKeyChecking=no -r ./ecomvida-frontend/* ec2-user@${{ secrets.AUTH_EC2_HOST }}:~/ecomvida-frontend/
+
+    - name: Construir y correr contenedor frontend
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.AUTH_EC2_HOST }} << 'EOF'
+          cd ~/ecomvida-frontend
+          docker stop auth-frontend || true && docker rm auth-frontend || true
+          docker build -t auth-frontend .
+          docker run -d -p 80:80 --name auth-frontend auth-frontend
+        EOF
