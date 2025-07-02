@@ -22,6 +22,14 @@ jobs:
     - name: Preparar carpeta en EC2
       run: |
         ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.AUTH_EC2_HOST }} << 'EOF'
+          # Instalar Docker para Amazon Linux 2023
+          sudo dnf update -y
+          sudo dnf install docker -y
+          sudo systemctl enable docker
+          sudo systemctl start docker
+          sudo usermod -aG docker ec2-user
+
+          # Crear carpeta limpia para frontend
           mkdir -p ~/ecomvida-frontend
           cd ~/ecomvida-frontend
           rm -rf *
